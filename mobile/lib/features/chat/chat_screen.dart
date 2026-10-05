@@ -35,6 +35,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       if (mounted) setState(() => _messages.addAll(List<Map<String, dynamic>>.from(res.data['messages'])));
     } catch (_) {}
     final token = await api.tokens.access;
+    if (!mounted) return;
     final socket = io.io(
       apiUrl,
       io.OptionBuilder().setTransports(['websocket']).setAuth({'token': token}).disableAutoConnect().build(),

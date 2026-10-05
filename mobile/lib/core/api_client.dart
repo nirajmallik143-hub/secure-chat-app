@@ -24,7 +24,7 @@ class ApiClient {
     dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
         final token = await tokens.access;
-        if (token != null) options.headers['Authorization'] = 'Bearer ' + token;
+        if (token != null) options.headers['Authorization'] = 'Bearer $token';
         handler.next(options);
       },
       onError: (e, handler) async {
@@ -32,7 +32,7 @@ class ApiClient {
         if (e.response?.statusCode == 401 && req.extra['retried'] != true && !req.path.startsWith('/auth/')) {
           if (await _refresh()) {
             req.extra['retried'] = true;
-            req.headers['Authorization'] = 'Bearer ' + (await tokens.access ?? '');
+            req.headers['Authorization'] = 'Bearer ${await tokens.access ?? ''}';
             try {
               return handler.resolve(await dio.fetch(req));
             } on DioException catch (err) {

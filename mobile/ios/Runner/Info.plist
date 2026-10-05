@@ -37,12 +37,6 @@
 	<string>Nepal Connect needs access to your photo library so you can choose photos to share in your posts.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Nepal Connect saves photos to your library only when you ask it to.</string>
-	<key>NSUserNotificationsUsageDescription</key>
-	<string>Nepal Connect sends notifications about likes, comments, follows and messages.</string>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>remote-notification</string>
-	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

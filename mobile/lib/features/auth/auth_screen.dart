@@ -56,7 +56,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         ],
         TextField(
           controller: _id,
-          keyboardType: TextInputType.emailAddress,
+          keyboardType: TextInputType.text,
           decoration: InputDecoration(labelText: l.emailOrPhone),
         ),
         const SizedBox(height: 16),
