@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '../db';
 import { requireAuth } from '../middleware/auth';
 import { validate } from '../middleware/validate';
+import { HttpError } from '../utils/errors';
 
 export const miscRouter = Router();
 miscRouter.use(requireAuth);
@@ -16,6 +17,13 @@ const reportSchema = z
   .refine((d) => d.reportedUserId || d.postId, { message: 'reportedUserId or postId is required' });
 
 miscRouter.post('/reports', validate(reportSchema), async (req, res) => {
+  const { reportedUserId, postId } = req.body;
+  if (reportedUserId && !(await prisma.user.findUnique({ where: { id: reportedUserId } }))) {
+    throw new HttpError(404, 'User not found');
+  }
+  if (postId && !(await prisma.post.findUnique({ where: { id: postId } }))) {
+    throw new HttpError(404, 'Post not found');
+  }
   const report = await prisma.report.create({ data: { reporterId: req.userId!, ...req.body } });
   res.status(201).json({ report });
 });
@@ -38,6 +46,15 @@ miscRouter.post('/notifications/read', async (req, res) => {
 miscRouter.get('/messages/:userId', async (req, res) => {
   const me = req.userId!;
   const other = req.params.userId;
+  const blocked = await prisma.block.findFirst({
+    where: {
+      OR: [
+        { blockerId: me, blockedId: other },
+        { blockerId: other, blockedId: me },
+      ],
+    },
+  });
+  if (blocked) throw new HttpError(403, 'Blocked');
   const messages = await prisma.message.findMany({
     where: {
       OR: [

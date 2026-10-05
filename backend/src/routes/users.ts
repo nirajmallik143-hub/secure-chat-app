@@ -12,7 +12,7 @@ usersRouter.use(requireAuth);
 const profileSchema = z.object({
   displayName: z.string().trim().min(1).max(60).optional(),
   bio: z.string().max(300).nullable().optional(),
-  avatarUrl: z.string().url().nullable().optional(),
+  avatarUrl: z.string().url().refine((u) => /^https?:\/\//i.test(u), 'Must be http(s)').nullable().optional(),
   language: z.enum(['en', 'ne']).optional(),
 });
 

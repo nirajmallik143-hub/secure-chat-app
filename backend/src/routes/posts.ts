@@ -15,7 +15,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 *
 
 const postSchema = z.object({
   text: z.string().trim().min(1).max(5000),
-  imageUrl: z.string().url().optional(),
+  imageUrl: z.string().url().refine((u) => /^https?:\/\//i.test(u), 'Must be http(s)').optional(),
 });
 const commentSchema = z.object({ text: z.string().trim().min(1).max(2000) });
 
@@ -72,7 +72,7 @@ postsRouter.delete('/:id', async (req, res) => {
 
 postsRouter.post('/:id/like', async (req, res) => {
   const post = await prisma.post.findUnique({ where: { id: req.params.id } });
-  if (!post) throw new HttpError(404, 'Post not found');
+  if (!post || post.hidden) throw new HttpError(404, 'Post not found');
   const key = { userId_postId: { userId: req.userId!, postId: post.id } };
   const existing = await prisma.like.findUnique({ where: key });
   if (existing) {
@@ -86,6 +86,8 @@ postsRouter.post('/:id/like', async (req, res) => {
 
 postsRouter.get('/:id/comments', async (req, res) => {
   const hiddenAuthors = await blockedIds(req.userId!);
+  const parent = await prisma.post.findUnique({ where: { id: req.params.id } });
+  if (!parent || parent.hidden) throw new HttpError(404, 'Post not found');
   const comments = await prisma.comment.findMany({
     where: { postId: req.params.id, authorId: { notIn: hiddenAuthors } },
     orderBy: { createdAt: 'asc' },
@@ -96,7 +98,7 @@ postsRouter.get('/:id/comments', async (req, res) => {
 
 postsRouter.post('/:id/comments', validate(commentSchema), async (req, res) => {
   const post = await prisma.post.findUnique({ where: { id: req.params.id } });
-  if (!post) throw new HttpError(404, 'Post not found');
+  if (!post || post.hidden) throw new HttpError(404, 'Post not found');
   const comment = await prisma.comment.create({
     data: { postId: post.id, authorId: req.userId!, text: req.body.text },
   });

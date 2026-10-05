@@ -12,10 +12,11 @@ function secret(name: string, fallback: string): string {
 export const env = {
   isProd,
   port: Number(process.env.PORT ?? 4000),
-  corsOrigin: process.env.CORS_ORIGIN ?? '*',
+  // Native mobile apps do not need CORS; list web origins explicitly (comma separated) if you add a web client.
+  corsOrigins: (process.env.CORS_ORIGIN ?? '').split(',').map((o) => o.trim()).filter(Boolean),
   accessSecret: secret('JWT_ACCESS_SECRET', 'dev-access-secret-dev-access-secret-1234'),
-  refreshSecret: secret('JWT_REFRESH_SECRET', 'dev-refresh-secret-dev-refresh-secret-1234'),
-    refreshTtlDays: 30,
+  accessTtlSeconds: 15 * 60,
+    refreshTtlDays: Number(process.env.REFRESH_TTL_DAYS ?? 30),
   adminEmails: (process.env.ADMIN_EMAILS ?? '').split(',').map((e) => e.trim().toLowerCase()).filter(Boolean),
   ai: {
     baseUrl: process.env.AI_BASE_URL ?? 'https://api.openai.com/v1',

@@ -8,8 +8,26 @@ import { emitToUser, setIO } from './hub';
 
 const messageSchema = z.object({ to: z.string().uuid(), text: z.string().trim().min(1).max(2000) });
 
+type Ack = ((result: unknown) => void) | undefined;
+
+async function handleMessage(userId: string, to: string, text: string, ack: Ack) {
+  if (!(await prisma.user.findUnique({ where: { id: to } }))) return ack?.({ error: 'not found' });
+  const blocked = await prisma.block.findFirst({
+    where: {
+      OR: [
+        { blockerId: to, blockedId: userId },
+        { blockerId: userId, blockedId: to },
+      ],
+    },
+  });
+  if (blocked) return ack?.({ error: 'blocked' });
+  const msg = await prisma.message.create({ data: { senderId: userId, receiverId: to, text } });
+  emitToUser(to, 'message', msg);
+  ack?.({ message: msg });
+}
+
 export function attachSockets(server: http.Server): Server {
-  const io = new Server(server, { cors: { origin: env.corsOrigin } });
+  const io = new Server(server, { cors: { origin: env.corsOrigins.length ? env.corsOrigins : false } });
   setIO(io);
 
   io.use((socket, next) => {
@@ -25,22 +43,14 @@ export function attachSockets(server: http.Server): Server {
     const userId: string = socket.data.userId;
     socket.join(`user:${userId}`);
 
-    socket.on('message', async (raw, ack) => {
+    socket.on('message', async (raw, ack: Ack) => {
       const parsed = messageSchema.safeParse(raw);
       if (!parsed.success) return ack?.({ error: 'invalid message' });
-      const { to, text } = parsed.data;
-      const blocked = await prisma.block.findFirst({
-        where: {
-          OR: [
-            { blockerId: to, blockedId: userId },
-            { blockerId: userId, blockedId: to },
-          ],
-        },
-      });
-      if (blocked) return ack?.({ error: 'blocked' });
-      const msg = await prisma.message.create({ data: { senderId: userId, receiverId: to, text } });
-      emitToUser(to, 'message', msg);
-      ack?.({ message: msg });
+      try {
+        await handleMessage(userId, parsed.data.to, parsed.data.text, ack);
+      } catch {
+        ack?.({ error: 'failed' });
+      }
     });
   });
   return io;
