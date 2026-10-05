@@ -16,7 +16,7 @@ export const env = {
   corsOrigins: (process.env.CORS_ORIGIN ?? '').split(',').map((o) => o.trim()).filter(Boolean),
   accessSecret: secret('JWT_ACCESS_SECRET', 'dev-access-secret-dev-access-secret-1234'),
   accessTtlSeconds: 15 * 60,
-    refreshTtlDays: Number(process.env.REFRESH_TTL_DAYS ?? 30),
+  refreshTtlDays: Number(process.env.REFRESH_TTL_DAYS ?? 30),
   adminEmails: (process.env.ADMIN_EMAILS ?? '').split(',').map((e) => e.trim().toLowerCase()).filter(Boolean),
   ai: {
     baseUrl: process.env.AI_BASE_URL ?? 'https://api.openai.com/v1',

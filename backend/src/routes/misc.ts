@@ -24,7 +24,7 @@ miscRouter.post('/reports', validate(reportSchema), async (req, res) => {
   if (postId && !(await prisma.post.findUnique({ where: { id: postId } }))) {
     throw new HttpError(404, 'Post not found');
   }
-  const report = await prisma.report.create({ data: { reporterId: req.userId!, ...req.body } });
+  const report = await prisma.report.create({ data: { reporterId: req.userId!, reportedUserId, postId, reason: req.body.reason } });
   res.status(201).json({ report });
 });
 

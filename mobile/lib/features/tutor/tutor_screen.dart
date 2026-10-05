@@ -34,7 +34,7 @@ class _TutorScreenState extends ConsumerState<TutorScreen> {
     _text.clear();
     try {
       final res = await ref.read(apiProvider).dio.post('/tutor/ask', data: {'question': q});
-      setState(() => _turns.add((mine: false, text: res.data['answer'] as String)));
+      if (mounted) setState(() => _turns.add((mine: false, text: res.data['answer'] as String)));
     } catch (_) {
       if (mounted) showError(context);
     } finally {

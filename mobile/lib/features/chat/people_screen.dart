@@ -41,7 +41,7 @@ class _PeopleScreenState extends ConsumerState<PeopleScreen> {
               : ListView(children: [
                   for (final u in _users)
                     ListTile(
-                      leading: CircleAvatar(child: Text((u['displayName'] as String).characters.first.toUpperCase())),
+                      leading: CircleAvatar(child: Text(((u['displayName'] as String).isEmpty ? '?' : (u['displayName'] as String).characters.first).toUpperCase())),
                       title: Text(u['displayName']),
                       onTap: () => Navigator.push(
                         context,

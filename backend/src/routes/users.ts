@@ -9,6 +9,18 @@ import { notify } from '../services/notify';
 export const usersRouter = Router();
 usersRouter.use(requireAuth);
 
+async function isBlocked(a: string, b: string): Promise<boolean> {
+  const row = await prisma.block.findFirst({
+    where: {
+      OR: [
+        { blockerId: a, blockedId: b },
+        { blockerId: b, blockedId: a },
+      ],
+    },
+  });
+  return !!row;
+}
+
 const profileSchema = z.object({
   displayName: z.string().trim().min(1).max(60).optional(),
   bio: z.string().max(300).nullable().optional(),
@@ -52,7 +64,7 @@ usersRouter.get('/:id', async (req, res) => {
     where: { id: req.params.id },
     select: { ...select, _count: { select: { followers: true, following: true, posts: true } } },
   });
-  if (!user) throw new HttpError(404, 'User not found');
+  if (!user || (await isBlocked(req.userId!, user.id))) throw new HttpError(404, 'User not found');
   const follow = await prisma.follow.findUnique({
     where: { followerId_followingId: { followerId: req.userId!, followingId: user.id } },
   });
@@ -62,7 +74,7 @@ usersRouter.get('/:id', async (req, res) => {
 usersRouter.post('/:id/follow', async (req, res) => {
   if (req.params.id === req.userId) throw new HttpError(400, 'Cannot follow yourself');
   const target = await prisma.user.findUnique({ where: { id: req.params.id } });
-  if (!target) throw new HttpError(404, 'User not found');
+  if (!target || (await isBlocked(req.userId!, target.id))) throw new HttpError(404, 'User not found');
   const key = { followerId_followingId: { followerId: req.userId!, followingId: target.id } };
   if (await prisma.follow.findUnique({ where: key })) {
     await prisma.follow.delete({ where: key });

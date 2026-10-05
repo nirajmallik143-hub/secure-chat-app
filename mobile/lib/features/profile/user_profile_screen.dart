@@ -41,7 +41,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   Future<void> _toggleFollow() async {
     try {
       final res = await ref.read(apiProvider).dio.post('/users/${widget.userId}/follow');
-      setState(() => _following = res.data['following'] == true);
+      if (mounted) setState(() => _following = res.data['following'] == true);
     } catch (_) {
       if (mounted) showError(context);
     }
@@ -76,7 +76,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
       body: u == null
           ? const Center(child: CircularProgressIndicator())
           : ListView(padding: const EdgeInsets.all(24), children: [
-              Center(child: CircleAvatar(radius: 44, child: Text((u['displayName'] as String).characters.first.toUpperCase(), style: const TextStyle(fontSize: 32)))),
+              Center(child: CircleAvatar(radius: 44, child: Text(((u['displayName'] as String).isEmpty ? '?' : (u['displayName'] as String).characters.first).toUpperCase(), style: const TextStyle(fontSize: 32)))),
               const SizedBox(height: 12),
               Center(child: Text(u['displayName'], style: Theme.of(context).textTheme.headlineSmall)),
               Center(child: Text(u['bio'] ?? '')),

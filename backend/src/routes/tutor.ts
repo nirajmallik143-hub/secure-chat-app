@@ -49,7 +49,15 @@ tutorRouter.get('/knowledge', async (req, res) => {
 
 tutorRouter.post('/knowledge', validate(knowledgeSchema), async (req, res) => {
   await requireAdmin(req.userId!);
-  const entry = await prisma.knowledgeEntry.create({ data: { ...req.body, createdBy: req.userId! } });
+  const entry = await prisma.knowledgeEntry.create({ data: {
+      title: req.body.title,
+      content: req.body.content,
+      subject: req.body.subject,
+      grade: req.body.grade,
+      language: req.body.language,
+      createdBy: req.userId!,
+    },
+  });
   res.status(201).json({ entry });
 });
 

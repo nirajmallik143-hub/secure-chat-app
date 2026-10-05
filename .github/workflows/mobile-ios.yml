@@ -52,7 +52,8 @@ jobs:
           security list-keychain -d user -s "$KEYCHAIN"
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp "$RUNNER_TEMP/profile.mobileprovision" ~/Library/MobileDevice/Provisioning\ Profiles/
-          sed -i '' "s/YOUR_APPLE_TEAM_ID/$APPLE_TEAM_ID/; s/YOUR_PROVISIONING_PROFILE_NAME/$IOS_PROVISIONING_PROFILE_NAME/" ios/ExportOptions.plist
+          /usr/libexec/PlistBuddy -c "Set :teamID $APPLE_TEAM_ID" ios/ExportOptions.plist
+          /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:$BUNDLE_ID $IOS_PROVISIONING_PROFILE_NAME" ios/ExportOptions.plist
       - run: flutter pub get
       - run: flutter test
       - name: Build IPA

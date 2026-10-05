@@ -103,7 +103,7 @@ class _PostCardState extends ConsumerState<PostCard> {
         padding: const EdgeInsets.all(12),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            CircleAvatar(child: Text(post.authorName.characters.first.toUpperCase())),
+            CircleAvatar(child: Text((post.authorName.isEmpty ? '?' : post.authorName.characters.first).toUpperCase())),
             const SizedBox(width: 8),
             Expanded(child: Text(post.authorName, style: const TextStyle(fontWeight: FontWeight.bold))),
             if (post.authorId != me)

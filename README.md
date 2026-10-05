@@ -54,7 +54,7 @@ docs/      PUBLISHING.md, PRIVACY_POLICY.md, TERMS.md
 
 ```bash
 cd backend
-cp .env.example .env              # set secrets (min 32 chars for JWT secrets)
+cp .env.example .env              # set secrets (JWT_ACCESS_SECRET must be at least 32 chars)
 docker compose up --build         # API on :4000 + PostgreSQL (migrations run on start)
 ```
 
